@@ -1,20 +1,22 @@
 from typing import List, Optional
 from cog import BasePredictor, Input
 from transformers import LLaMAForCausalLM, LLaMATokenizer
+from peft import PeftModel
 import torch
 
 from train import PROMPT_DICT
 PROMPT = PROMPT_DICT['prompt_no_input']
 
-CACHE_DIR = 'alpaca_out'
+CACHE_DIR = 'cache'
 
 class Predictor(BasePredictor):
     def setup(self):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.model = LLaMAForCausalLM.from_pretrained("alpaca_out", cache_dir=CACHE_DIR, local_files_only=True)
+        self.model = LLaMAForCausalLM.from_pretrained("llama-30b-hf", cache_dir=CACHE_DIR, local_files_only=True)
+        self.model = PeftModel.from_pretrained(self.model, "alpaca-30b", cache_dir=CACHE_DIR, local_files_only=True)
         self.model = self.model
         self.model.to(self.device)
-        self.tokenizer = LLaMATokenizer.from_pretrained("alpaca_out", cache_dir=CACHE_DIR, local_files_only=True)
+        self.tokenizer = LLaMATokenizer.from_pretrained("llama-30b-hf", cache_dir=CACHE_DIR, local_files_only=True)
 
     def predict(
         self,
